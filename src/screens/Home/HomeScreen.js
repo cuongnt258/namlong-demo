@@ -112,13 +112,9 @@ const HomeScreen = () => {
         return element?.item;
       });
 
-      console.log('>new history', newHistory);
-
       cloneCustomers = cloneCustomers.filter((element, _index) => {
         return element !== newHistory?.[_index];
       });
-
-      console.log('>Clone CUstomers', cloneCustomers);
     }
 
     let slicedArr = cloneCustomers.slice(10 * (newPage - 1), newPage * 10);
