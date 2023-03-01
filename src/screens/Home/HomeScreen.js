@@ -102,7 +102,6 @@ const HomeScreen = () => {
   }, []);
 
   const _handleLoadMore = () => {
-    console.log('<Load More>');
     const newPage = page + 1;
 
     let cloneCustomers = [...customers];
@@ -113,11 +112,13 @@ const HomeScreen = () => {
         return element?.item;
       });
 
-      cloneCustomers = cloneCustomers.filter((element, _index) => {
-        if (newHistory?.[_index]) return element !== newHistory[_index];
+      console.log('>new history', newHistory);
 
-        return false;
+      cloneCustomers = cloneCustomers.filter((element, _index) => {
+        return element !== newHistory?.[_index];
       });
+
+      console.log('>Clone CUstomers', cloneCustomers);
     }
 
     let slicedArr = cloneCustomers.slice(10 * (newPage - 1), newPage * 10);
@@ -305,7 +306,7 @@ const HomeScreen = () => {
       if (customers.length === 0) {
         newCustomerId = 1;
       } else {
-        newCustomerId = customer.length + history.length + 1;
+        newCustomerId = customers.length + history.length + 1;
         // newCustomerId =
         //   Math.max(...customers.map(({id}) => id)) + history.length + 1;
       }

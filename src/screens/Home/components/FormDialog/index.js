@@ -53,6 +53,14 @@ export const FormDialog = forwardRef(function FormDialog(props, ref) {
         id: -1,
         index: -1,
       });
+
+      dataRef.current = {
+        first_name: '',
+        last_name: '',
+        gender: '',
+        email: '',
+        address: '',
+      };
     },
   }));
 
@@ -97,16 +105,19 @@ export const FormDialog = forwardRef(function FormDialog(props, ref) {
     firstNameInputRef.current?.setNativeProps({
       text: first_name,
     });
+
     lastNameInputRef.current?.setNativeProps({text: last_name});
     addressInputRef.current?.setNativeProps({text: address});
     genderInputRef.current?.setNativeProps({text: gender});
     emailInputRef.current?.setNativeProps({text: email});
 
-    firstNameValueRef.current = first_name;
-    lastNameValueRef.current = last_name;
-    addressValueRef.current = address;
-    genderValueRef.current = gender;
-    emailValueRef.current = email;
+    if (type === ACTION_TYPE.UPDATE) {
+      firstNameValueRef.current = first_name;
+      lastNameValueRef.current = last_name;
+      addressValueRef.current = address;
+      genderValueRef.current = gender;
+      emailValueRef.current = email;
+    }
   };
 
   return (
@@ -117,6 +128,7 @@ export const FormDialog = forwardRef(function FormDialog(props, ref) {
         <Text style={styles.label}>First Name</Text>
         <TextInput
           ref={firstNameInputRef}
+          placeholder="Please enter first name"
           style={styles.input}
           onChangeText={_onChangeTextFirstName}
         />
@@ -124,6 +136,7 @@ export const FormDialog = forwardRef(function FormDialog(props, ref) {
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Last Name</Text>
         <TextInput
+          placeholder="Please enter last name"
           ref={lastNameInputRef}
           style={styles.input}
           onChangeText={_onChangeTextLastName}
@@ -132,6 +145,7 @@ export const FormDialog = forwardRef(function FormDialog(props, ref) {
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Email</Text>
         <TextInput
+          placeholder="Please enter email"
           ref={addressInputRef}
           style={styles.input}
           keyboardType="email-address"
@@ -141,6 +155,7 @@ export const FormDialog = forwardRef(function FormDialog(props, ref) {
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Gender</Text>
         <TextInput
+          placeholder="Please enter gender"
           ref={genderInputRef}
           style={styles.input}
           onChangeText={_onChangeTextGender}
@@ -149,6 +164,7 @@ export const FormDialog = forwardRef(function FormDialog(props, ref) {
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Address</Text>
         <TextInput
+          placeholder="Please enter address"
           ref={emailInputRef}
           style={styles.input}
           onChangeText={_onChangeTextEmail}
