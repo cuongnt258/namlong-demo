@@ -101,6 +101,12 @@ export const FormDialog = forwardRef(function FormDialog(props, ref) {
     addressInputRef.current?.setNativeProps({text: address});
     genderInputRef.current?.setNativeProps({text: gender});
     emailInputRef.current?.setNativeProps({text: email});
+
+    firstNameValueRef.current = first_name;
+    lastNameValueRef.current = last_name;
+    addressValueRef.current = address;
+    genderValueRef.current = gender;
+    emailValueRef.current = email;
   };
 
   return (
