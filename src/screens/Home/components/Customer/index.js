@@ -4,9 +4,7 @@ import {Text, View} from 'react-native';
 // Import local files
 import styles from './style';
 
-const Customer = ({item}) => {
-  const {first_name, last_name, email, gender, address} = item || {};
-
+const Customer = ({first_name, last_name, email, gender, address}) => {
   return (
     <View style={styles.container}>
       <View style={styles.info}>

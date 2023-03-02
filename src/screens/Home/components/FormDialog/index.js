@@ -71,9 +71,9 @@ const FormDialog = ({onClose, onConfirm}, ref) => {
     const customer = {
       id,
       first_name: firstNameValueRef.current,
-      last_name: firstNameValueRef.current,
-      gender: genderValueRef.current,
+      last_name: lastNameValueRef.current,
       email: emailValueRef.current,
+      gender: genderValueRef.current,
       address: addressValueRef.current,
     };
 

@@ -2,12 +2,10 @@
 import React, {useEffect, useReducer, useRef} from 'react';
 import {Pressable, Text, View} from 'react-native';
 import SwipeableFlatList from 'react-native-swipeable-list';
-import {Toast} from 'react-native-toast-message/lib/src/Toast';
 import {utils} from 'xlsx';
 
 // **Import local
 import {
-  getScreenWidth,
   pickAndParse,
   reducer,
   showErrorToast,
@@ -103,13 +101,12 @@ const HomeScreen = () => {
     let cloneCustomers = [...customers];
 
     if (history.length !== 0) {
-      // remap array
       const newHistory = history.map(element => {
         return element?.item;
       });
 
-      cloneCustomers = cloneCustomers.filter((element, _index) => {
-        return element !== newHistory?.[_index];
+      cloneCustomers = cloneCustomers.filter(obj => {
+        return !newHistory.some(obj2 => obj2?.id === obj?.id);
       });
     }
 
@@ -120,12 +117,9 @@ const HomeScreen = () => {
       obj => !loadedCustomers.some(obj2 => obj2.id === obj.id),
     );
 
-    let cloneLoadedCustomer = [...loadedCustomers];
-    cloneLoadedCustomer = cloneLoadedCustomer.concat(slicedArr);
-
     dispatchState({
       page: newPage,
-      loadedCustomers: cloneLoadedCustomer,
+      loadedCustomers: [...loadedCustomers].concat(slicedArr),
     });
 
     loadMoreRef.current = false;
@@ -155,7 +149,6 @@ const HomeScreen = () => {
           removedHistory.data,
         );
 
-        // dispatch state
         dispatchState({
           loadedCustomers: cloneLoadedCustomers,
           history: newHistoryArr,
@@ -172,7 +165,7 @@ const HomeScreen = () => {
 
           confirmDialogRef.current.hide();
 
-          break;
+          return;
         }
 
         let cloneLoadedData = [...loadedCustomers];
@@ -218,7 +211,7 @@ const HomeScreen = () => {
         if (index === -1) {
           showErrorToast('Error occured');
 
-          break;
+          return;
         }
 
         let updateCustomerIndex = customers.findIndex(element => {
@@ -228,7 +221,7 @@ const HomeScreen = () => {
         if (updateCustomerIndex === -1) {
           showErrorToast('Error occured');
 
-          break;
+          return;
         }
 
         let cloneCustomers = [...customers];
@@ -236,10 +229,11 @@ const HomeScreen = () => {
         if (
           JSON.stringify(customer) === JSON.stringify(cloneCustomers[index])
         ) {
-          _handleToast(TOAST_STATUS.ERROR, 'Nothing to update!');
+          showErrorToast('Nothing to update!');
 
-          break;
+          return;
         }
+
         cloneCustomers[updateCustomerIndex] = customer;
 
         let cloneLoadedCustomers = [...loadedCustomers];
@@ -282,12 +276,20 @@ const HomeScreen = () => {
   };
 
   const _getItemLayout = (_data, index) => ({
-    length: getScreenWidth,
+    length: 120,
     offset: 120 * index,
     index,
   });
 
-  const _renderItem = ({item}) => <Customer item={item} />;
+  const _renderItem = ({item}) => (
+    <Customer
+      first_name={item.first_name}
+      last_name={item.last_name}
+      gender={item.gender}
+      address={item.address}
+      email={item.email}
+    />
+  );
 
   const _quickActions = ({index, item}) => {
     const _onUpdatePress = () => {
@@ -347,6 +349,7 @@ const HomeScreen = () => {
         getItemLayout={_getItemLayout}
         maxToRenderPerBatch={10}
         initialNumToRender={10}
+        removeClippedSubViews={true}
         onEndReachedThreshold={0.01}
       />
 
