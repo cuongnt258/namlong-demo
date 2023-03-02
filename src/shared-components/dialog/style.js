@@ -6,6 +6,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(52, 52, 52, 0.8)',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: -10000,
   },
 
   iOSBackdrop: {
@@ -74,6 +75,15 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+
+  buttonOK: {
+    width: '40%',
+    backgroundColor: '#1F8A70',
+    borderColor: '#ddd',
+    borderRadius: 12,
+    paddingVertical: 16,
+    marginHorizontal: 8,
   },
 });
 

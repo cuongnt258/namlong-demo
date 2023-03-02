@@ -31,6 +31,7 @@ const ConfirmDialog = ({onClose, onConfirm}, ref) => {
   };
 
   const _handleOnConfirm = () => {
+    console.log('>>> CONFIRM');
     onConfirm({type: state.type, index: state.index});
   };
 

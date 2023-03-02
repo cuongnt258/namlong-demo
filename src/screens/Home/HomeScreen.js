@@ -1,7 +1,6 @@
 // **Import libs
 import React, {useEffect, useReducer, useRef} from 'react';
-import {Pressable, Text, View} from 'react-native';
-import SwipeableFlatList from 'react-native-swipeable-list';
+import {FlatList} from 'react-native';
 import {utils} from 'xlsx';
 
 // **Import local
@@ -37,6 +36,12 @@ const HomeScreen = () => {
   const {customers, loadedCustomers, page, history} = state;
 
   // Functions
+  const _scrollToIndex = index => {
+    flatlistRef?.current?.scrollToIndex({
+      animated: true,
+      index,
+    });
+  };
 
   const _handleToast = (type, message) => {
     timerRef.current && clearTimeout(timerRef.current);
@@ -78,16 +83,16 @@ const HomeScreen = () => {
         loading: false,
       });
 
-      showSuccessToast('IMPORT SUCCESS!');
+      showSuccessToast('Import success!');
     } catch (err) {
       dispatchState({loading: false});
 
       if (err.code === FS.DOCUMENT_PICKER_CANCELED) {
-        showErrorToast('IMPORT CANCELLED!');
+        showErrorToast('Import cancelled!');
         return;
       }
 
-      showErrorToast('IMPORT FAILED!');
+      showErrorToast('Import failed!');
     }
   };
 
@@ -128,12 +133,16 @@ const HomeScreen = () => {
   const _handleUndo = () => {
     if (!history.length) {
       showErrorToast('Nothing to undo!');
+
       return;
     }
 
-    const undoIndex = history.length - 1;
+    const undoIndex = history?.[history.length - 1]?.index || -1;
 
-    confirmDialogRef.current?.showUndo('Undo', undoIndex);
+    confirmDialogRef.current?.showUndo(
+      'Press confirm to undo archived customer',
+      undoIndex,
+    );
   };
 
   const _handleDialogConfirm = ({type, index}) => {
@@ -157,6 +166,7 @@ const HomeScreen = () => {
         confirmDialogRef.current?.hide();
 
         _handleToast(TOAST_STATUS.SUCCESS, 'Undo success!');
+        _scrollToIndex(removedHistory.index);
 
         break;
       case ACTION_TYPE.ARCHIVE:
@@ -202,7 +212,8 @@ const HomeScreen = () => {
       !customer.gender ||
       !customer.email
     ) {
-      showErrorToast('Missing field(s)');
+      _handleToast(TOAST_STATUS.ERROR, 'Missing field(s)');
+
       return;
     }
 
@@ -260,6 +271,7 @@ const HomeScreen = () => {
         });
         _handleFormDialogClose();
         _handleToast(TOAST_STATUS.SUCCESS, 'Added');
+        _scrollToIndex(0);
 
         break;
       default:
@@ -281,22 +293,12 @@ const HomeScreen = () => {
     index,
   });
 
-  const _renderItem = ({item}) => (
-    <Customer
-      first_name={item.first_name}
-      last_name={item.last_name}
-      gender={item.gender}
-      address={item.address}
-      email={item.email}
-    />
-  );
-
-  const _quickActions = ({index, item}) => {
-    const _onUpdatePress = () => {
+  const _renderItem = ({item, index}) => {
+    const onUpdate = () => {
       formDialogRef.current?.showUpdate(item, index);
     };
 
-    const _onArchivePress = () => {
+    const onArchive = () => {
       confirmDialogRef.current?.showArchive(
         'Do you want to archive this customer?',
         index,
@@ -304,19 +306,15 @@ const HomeScreen = () => {
     };
 
     return (
-      <View style={styles.qaContainer}>
-        <Pressable
-          style={[styles.button, styles.buttonUpdate]}
-          onPress={_onUpdatePress}>
-          <Text style={[styles.buttonText, styles.button1Text]}>Update</Text>
-        </Pressable>
-
-        <Pressable
-          style={[styles.button, styles.buttonArchive]}
-          onPress={_onArchivePress}>
-          <Text style={[styles.buttonText, styles.button2Text]}>Archive</Text>
-        </Pressable>
-      </View>
+      <Customer
+        first_name={item.first_name}
+        last_name={item.last_name}
+        gender={item.gender}
+        address={item.address}
+        email={item.email}
+        onArchive={onArchive}
+        onUpdate={onUpdate}
+      />
     );
   };
 
@@ -336,15 +334,12 @@ const HomeScreen = () => {
         style={styles.actions}
       />
 
-      <SwipeableFlatList
-        flatListRef={flatlistRef}
+      <FlatList
+        ref={flatlistRef}
         keyExtractor={extractItemKey}
-        data={loadedCustomers}
+        data={customers}
         renderItem={_renderItem}
-        maxSwipeDistance={160}
-        renderQuickActions={_quickActions}
         contentContainerStyle={styles.contentContainerStyle}
-        bounceFirstRowOnMount={false}
         onEndReached={_handleLoadMore}
         getItemLayout={_getItemLayout}
         maxToRenderPerBatch={10}

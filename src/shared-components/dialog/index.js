@@ -19,6 +19,7 @@ const Dialog = ({style, visible, onClose, onConfirm, children, ...props}) => {
             style={[styles.backdrop, styles.iOSBackdrop]}
             onPress={onClose}
           />
+
           <View style={[styles.content, style]}>
             {children}
 
@@ -37,8 +38,7 @@ const Dialog = ({style, visible, onClose, onConfirm, children, ...props}) => {
             </View>
           </View>
         </View>
-
-        <Toast visibilityTime={1500} />
+        <Toast />
       </Modal>
     </>
   );
