@@ -7,9 +7,7 @@ import Dialog from '../../../../shared-components/dialog';
 import {ACTION_TYPE} from '../../constants';
 import styles from './style';
 
-export const FormDialog = forwardRef(function FormDialog(props, ref) {
-  const {onClose, onConfirm} = props;
-
+const FormDialog = ({onClose, onConfirm}, ref) => {
   const [state, setState] = useState({
     open: false,
     type: ACTION_TYPE.ADD,
@@ -23,7 +21,8 @@ export const FormDialog = forwardRef(function FormDialog(props, ref) {
   const genderValueRef = useRef('');
   const emailValueRef = useRef('');
 
-  const dataRef = useRef('');
+  const dataRef = useRef();
+
   const firstNameInputRef = useRef('');
   const lastNameInputRef = useRef('');
   const addressInputRef = useRef('');
@@ -32,153 +31,177 @@ export const FormDialog = forwardRef(function FormDialog(props, ref) {
 
   const {type, index, id} = state;
 
-  useImperativeHandle(ref, () => ({
-    showUpdate(itemValue, itemIndex) {
-      dataRef.current = itemValue;
+  const _showUpdate = (itemValue, itemIndex) => {
+    dataRef.current = itemValue;
 
-      setState({
-        open: true,
-        index: itemIndex,
-        type: ACTION_TYPE.UPDATE,
-        id: itemValue.id,
-      });
-    },
-    showCreate() {
-      setState({...state, open: true, type: ACTION_TYPE.ADD});
-    },
-    hide() {
-      setState({
-        ...state,
-        open: false,
-        id: -1,
-        index: -1,
-      });
+    setState({
+      open: true,
+      index: itemIndex,
+      type: ACTION_TYPE.UPDATE,
+      id: itemValue.id,
+    });
+  };
 
-      dataRef.current = {
-        first_name: '',
-        last_name: '',
-        gender: '',
-        email: '',
-        address: '',
-      };
-    },
-  }));
+  const _showCreate = () => {
+    setState({
+      ...state,
+      open: true,
+      type: ACTION_TYPE.ADD,
+    });
+  };
 
-  const handleOnConfirm = () => {
-    onConfirm(
-      type,
-      {
-        id,
-        first_name: firstNameValueRef.current,
-        last_name: firstNameValueRef.current,
-        gender: genderValueRef.current,
-        email: emailValueRef.current,
-        address: addressValueRef.current,
-      },
-      index,
-    );
+  const _hide = () => {
+    setState({
+      ...state,
+      open: false,
+      id: -1,
+      index: -1,
+    });
+
+    firstNameValueRef.current = '';
+    firstNameValueRef.current = '';
+    genderValueRef.current = '';
+    emailValueRef.current = '';
+    addressValueRef.current = '';
+
+    dataRef.current = null;
+  };
+
+  const _handleOnConfirm = () => {
+    const customer = {
+      id,
+      first_name: firstNameValueRef.current,
+      last_name: firstNameValueRef.current,
+      gender: genderValueRef.current,
+      email: emailValueRef.current,
+      address: addressValueRef.current,
+    };
+
+    onConfirm(type, customer, index);
   };
 
   const _onChangeTextFirstName = value => {
     firstNameValueRef.current = value;
   };
+
   const _onChangeTextLastName = value => {
     lastNameValueRef.current = value;
   };
+
   const _onChangeTextEmail = value => {
     emailValueRef.current = value;
   };
+
   const _onChangeTextAddress = value => {
     addressValueRef.current = value;
   };
+
   const _onChangeTextGender = value => {
     genderValueRef.current = value;
   };
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      showUpdate: _showUpdate,
+      showCreate: _showCreate,
+      hide: _hide,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   const title =
     type === ACTION_TYPE.ADD ? 'Add new customer' : `Update customer ${id}`;
 
   const _onShow = () => {
-    const {address, first_name, last_name, gender, email} =
-      dataRef.current || {};
+    switch (type) {
+      case ACTION_TYPE.UPDATE:
+        const {address, first_name, last_name, gender, email} =
+          dataRef.current || {};
 
-    firstNameInputRef.current?.setNativeProps({
-      text: first_name,
-    });
+        firstNameInputRef.current?.setNativeProps({
+          text: first_name,
+        });
 
-    lastNameInputRef.current?.setNativeProps({text: last_name});
-    addressInputRef.current?.setNativeProps({text: address});
-    genderInputRef.current?.setNativeProps({text: gender});
-    emailInputRef.current?.setNativeProps({text: email});
+        lastNameInputRef.current?.setNativeProps({text: last_name});
+        addressInputRef.current?.setNativeProps({text: address});
+        genderInputRef.current?.setNativeProps({text: gender});
+        emailInputRef.current?.setNativeProps({text: email});
 
-    if (type === ACTION_TYPE.UPDATE) {
-      firstNameValueRef.current = first_name;
-      lastNameValueRef.current = last_name;
-      addressValueRef.current = address;
-      genderValueRef.current = gender;
-      emailValueRef.current = email;
+        firstNameValueRef.current = first_name;
+        lastNameValueRef.current = last_name;
+        addressValueRef.current = address;
+        genderValueRef.current = gender;
+        emailValueRef.current = email;
+
+        break;
+
+      default:
+        break;
     }
   };
 
+  const InputField = forwardRef(
+    ({label, onChangeText, placeholder}, inputRef) => {
+      return (
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>{label}</Text>
+          <TextInput
+            ref={inputRef}
+            placeholder={placeholder}
+            style={styles.input}
+            onChangeText={onChangeText}
+          />
+        </View>
+      );
+    },
+  );
+
   return (
-    <Dialog visible={state.open} onClose={onClose} onShow={_onShow}>
+    <Dialog
+      visible={state.open}
+      onClose={onClose}
+      onConfirm={_handleOnConfirm}
+      onShow={_onShow}>
       <Text style={styles.title}>{title}</Text>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>First Name</Text>
-        <TextInput
-          ref={firstNameInputRef}
-          placeholder="Please enter first name"
-          style={styles.input}
-          onChangeText={_onChangeTextFirstName}
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Last Name</Text>
-        <TextInput
-          placeholder="Please enter last name"
-          ref={lastNameInputRef}
-          style={styles.input}
-          onChangeText={_onChangeTextLastName}
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          placeholder="Please enter email"
-          ref={addressInputRef}
-          style={styles.input}
-          keyboardType="email-address"
-          onChangeText={_onChangeTextAddress}
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Gender</Text>
-        <TextInput
-          placeholder="Please enter gender"
-          ref={genderInputRef}
-          style={styles.input}
-          onChangeText={_onChangeTextGender}
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Address</Text>
-        <TextInput
-          placeholder="Please enter address"
-          ref={emailInputRef}
-          style={styles.input}
-          onChangeText={_onChangeTextEmail}
-        />
-      </View>
+      <InputField
+        label="First Name"
+        ref={firstNameInputRef}
+        onChangeText={_onChangeTextFirstName}
+        placeholder="Please enter first name"
+      />
 
-      <TouchableOpacity
-        style={styles.confirmButton}
-        activeOpacity={0.6}
-        onPress={handleOnConfirm}>
-        <Text style={styles.buttonText}>SUBMIT</Text>
-      </TouchableOpacity>
+      <InputField
+        label="Last Name"
+        ref={lastNameInputRef}
+        onChangeText={_onChangeTextLastName}
+        placeholder="Please enter last name"
+      />
+
+      <InputField
+        label="Address"
+        ref={addressInputRef}
+        onChangeText={_onChangeTextAddress}
+        placeholder="Please enter address"
+      />
+
+      <InputField
+        label="Gender"
+        ref={genderInputRef}
+        onChangeText={_onChangeTextGender}
+        placeholder="Please enter gender"
+      />
+
+      <InputField
+        label="Email"
+        ref={emailInputRef}
+        onChangeText={_onChangeTextEmail}
+        placeholder="Please enter email"
+      />
     </Dialog>
   );
-});
+};
 
-export default FormDialog;
+export default forwardRef(FormDialog);

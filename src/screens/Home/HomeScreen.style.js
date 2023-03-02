@@ -6,10 +6,8 @@ const styles = StyleSheet.create({
   },
   contentContainerStyle: {
     flexGrow: 1,
-    marginTop: 16,
   },
 
-  // Quick actions
   qaContainer: {
     flex: 1,
     flexDirection: 'row',
@@ -47,6 +45,10 @@ const styles = StyleSheet.create({
   },
   button3Text: {
     color: 'orange',
+  },
+
+  actions: {
+    marginBottom: 16,
   },
 });
 

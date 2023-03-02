@@ -5,15 +5,13 @@ import {Text, View} from 'react-native';
 import styles from './style';
 
 const Customer = ({item}) => {
-  const {id, first_name, last_name, email, gender, address} = item;
+  const {first_name, last_name, email, gender, address} = item || {};
 
   return (
     <View style={styles.container}>
-      <Text style={styles.id}>{id}</Text>
-
       <View style={styles.info}>
         <Text numberOfLines={1} style={styles.name}>
-          {first_name} {last_name}
+          {`${first_name} ${last_name}`}
         </Text>
 
         <Text numberOfLines={1}>{email} </Text>
@@ -26,5 +24,4 @@ const Customer = ({item}) => {
   );
 };
 
-// export default React.memo(Customer);
 export default Customer;

@@ -9,7 +9,8 @@ const App = () => {
   return (
     <>
       <HomeScreen />
-      <Toast contentContainerStyle={{zIndex: 100}} />
+
+      <Toast visibilityTime={1500} />
     </>
   );
 };

@@ -5,12 +5,9 @@ import {SafeAreaView, Text, TouchableOpacity} from 'react-native';
 // **Import locals
 import styles from './style';
 
-const Actions = props => {
-  const {handleImportFile, handleUndo, handleAddCustomer, historyLength} =
-    props;
-
+const Actions = ({handleImportFile, handleUndo, handleAddCustomer, style}) => {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, style]}>
       <TouchableOpacity
         style={[styles.button, styles.buttonImport]}
         onPress={handleImportFile}>

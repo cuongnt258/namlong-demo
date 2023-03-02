@@ -13,11 +13,6 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
 
-  androidBackdrop: {
-    backgroundColor: '#232f34',
-    opacity: 0.4,
-  },
-
   backdrop: {
     position: 'absolute',
     top: 0,
@@ -54,43 +49,31 @@ const styles = StyleSheet.create({
     marginTop: 32,
     color: 'gray',
   },
-
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     marginHorizontal: 16,
     marginTop: 32,
   },
-
-  confirmButton: {
+  button: {
     flex: 1,
     borderColor: '#ddd',
-    borderBottomWidth: 0,
     borderRadius: 12,
-
     paddingVertical: 16,
     marginHorizontal: 8,
-
     backgroundColor: 'lightgrey',
   },
-
+  buttonCancel: {
+    backgroundColor: '#FD8A8A',
+  },
+  buttonConfirm: {
+    backgroundColor: '#1F8A70',
+  },
   confirmButtonText: {
     color: 'white',
     textTransform: 'uppercase',
     fontWeight: 'bold',
     textAlign: 'center',
-  },
-
-  image: {
-    width: 100,
-    height: 100,
-  },
-
-  buttonCancel: {
-    backgroundColor: '#656565',
-  },
-  buttonConfirm: {
-    backgroundColor: '#1F8A70',
   },
 });
 

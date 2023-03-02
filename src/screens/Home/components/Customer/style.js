@@ -2,14 +2,13 @@ import {StyleSheet} from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
+    marginBottom: 20,
     height: 100,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'lightgray',
     marginHorizontal: 16,
-    marginBottom: 20,
-
     borderTopLeftRadius: 16,
     borderBottomLeftRadius: 16,
     elevation: 10,
@@ -22,7 +21,6 @@ const styles = StyleSheet.create({
         rotate: '270deg',
       },
     ],
-
     minWidth: 30,
     textAlign: 'center',
   },

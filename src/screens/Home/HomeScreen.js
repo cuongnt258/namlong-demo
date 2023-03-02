@@ -1,22 +1,25 @@
 // **Import libs
-import React, {useCallback, useReducer, useRef} from 'react';
-import {FlatList, Pressable, Text, View} from 'react-native';
-import {pickSingle} from 'react-native-document-picker';
-import {readFile} from 'react-native-fs';
+import React, {useEffect, useReducer, useRef} from 'react';
+import {Pressable, Text, View} from 'react-native';
 import SwipeableFlatList from 'react-native-swipeable-list';
-import {read, utils} from 'xlsx';
+import {Toast} from 'react-native-toast-message/lib/src/Toast';
+import {utils} from 'xlsx';
 
 // **Import local
-import {SCREEN_WIDTH, showErrorToast, showSuccessToast} from '../../utils';
+import {
+  getScreenWidth,
+  pickAndParse,
+  reducer,
+  showErrorToast,
+  showSuccessToast,
+} from '../../utils';
 import {ConfirmDialog, Customer, FormDialog} from './components';
 import Actions from './components/Actions';
-import {ACTION_TYPE, FS} from './constants';
+import {ACTION_TYPE, FS, TOAST_STATUS} from './constants';
 import styles from './HomeScreen.style';
 
 const HomeScreen = () => {
-  // Define variables & functions
   const initState = {
-    type: '',
     customers: [],
     loadedCustomers: [],
     history: [],
@@ -24,41 +27,31 @@ const HomeScreen = () => {
     page: 1,
   };
 
-  const reducer = (prevState, newState) => {
-    if (typeof newState === 'object') {
-      return {...prevState, ...newState};
-    }
-
-    if (typeof newState === 'function') {
-      return prevState(newState);
-    }
-
-    return initState;
-  };
-
-  const pickAndParse = async () => {
-    /* react-native-fs needs a copy */
-    const f = await pickSingle({
-      allowMultiSelection: false,
-      copyTo: 'cachesDirectory',
-      mode: 'open',
-    });
-    const bstr = await readFile(f.fileCopyUri, 'ascii');
-    return read(bstr, {type: 'binary'});
-  };
-
   // State, ref
   const flatlistRef = useRef();
   const confirmDialogRef = useRef(null);
   const formDialogRef = useRef(null);
+  const loadMoreRef = useRef(false);
+  const timerRef = useRef();
   const [state, dispatchState] = useReducer(reducer, initState);
 
+  // Get variables from state
   const {customers, loadedCustomers, page, history} = state;
 
   // Functions
-  const _handleImportFile = useCallback(async () => {
+
+  const _handleToast = (type, message) => {
+    timerRef.current && clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      type === TOAST_STATUS.SUCCESS
+        ? showSuccessToast(message)
+        : showErrorToast(message);
+    }, 0);
+  };
+
+  const _handleImportFile = async () => {
     try {
-      dispatchState({type: ACTION_TYPE.LOADING, loading: true});
+      dispatchState({loading: true});
 
       /* select and parse file */
       const wb = await pickAndParse();
@@ -81,7 +74,6 @@ const HomeScreen = () => {
 
       // dispatch
       dispatchState({
-        type: 'IMPORT',
         customers: newData,
         loadedCustomers: newData.slice(0, 10),
         page: 1,
@@ -90,7 +82,7 @@ const HomeScreen = () => {
 
       showSuccessToast('IMPORT SUCCESS!');
     } catch (err) {
-      dispatchState({type: ACTION_TYPE.LOADING, loading: false});
+      dispatchState({loading: false});
 
       if (err.code === FS.DOCUMENT_PICKER_CANCELED) {
         showErrorToast('IMPORT CANCELLED!');
@@ -99,16 +91,20 @@ const HomeScreen = () => {
 
       showErrorToast('IMPORT FAILED!');
     }
-  }, []);
+  };
 
   const _handleLoadMore = () => {
+    if (loadMoreRef.current === true) {
+      return;
+    }
+
     const newPage = page + 1;
 
     let cloneCustomers = [...customers];
 
     if (history.length !== 0) {
       // remap array
-      let newHistory = history.reduce(element => {
+      const newHistory = history.map(element => {
         return element?.item;
       });
 
@@ -128,14 +124,15 @@ const HomeScreen = () => {
     cloneLoadedCustomer = cloneLoadedCustomer.concat(slicedArr);
 
     dispatchState({
-      type: 'LOAD_MORE',
       page: newPage,
       loadedCustomers: cloneLoadedCustomer,
     });
+
+    loadMoreRef.current = false;
   };
 
-  const _handleUndo = useCallback(() => {
-    if (!history || history.length === 0) {
+  const _handleUndo = () => {
+    if (!history.length) {
       showErrorToast('Nothing to undo!');
       return;
     }
@@ -143,99 +140,56 @@ const HomeScreen = () => {
     const undoIndex = history.length - 1;
 
     confirmDialogRef.current?.showUndo('Undo', undoIndex);
-  }, [history]);
-
-  const _renderItem = useCallback(({item}) => <Customer item={item} />, []);
-
-  const _getItemLayout = (_data, index) => ({
-    length: SCREEN_WIDTH,
-    offset: 100 * index,
-    index,
-  });
-
-  const extractItemKey = item => {
-    return item?.id?.toString();
-  };
-
-  // Render
-  const _quickActions = ({index, item}) => {
-    const _onUpdatePress = () => {
-      formDialogRef.current?.showUpdate(item, index);
-    };
-
-    const _onArchivePress = () => {
-      confirmDialogRef.current?.showArchive(
-        'Do you want to archive this customer?',
-        index,
-      );
-    };
-
-    return (
-      <View style={styles.qaContainer}>
-        <Pressable
-          style={[styles.button, styles.buttonUpdate]}
-          onPress={_onUpdatePress}>
-          <Text style={[styles.buttonText, styles.button1Text]}>Update</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.button, styles.buttonArchive]}
-          onPress={_onArchivePress}>
-          <Text style={[styles.buttonText, styles.button2Text]}>Archive</Text>
-        </Pressable>
-      </View>
-    );
   };
 
   const _handleDialogConfirm = ({type, index}) => {
-    if (type === ACTION_TYPE.UNDO) {
-      const lastestHistoryItem = history[history.length - 1];
+    switch (type) {
+      case ACTION_TYPE.UNDO:
+        const newHistoryArr = [...history];
+        const removedHistory = newHistoryArr.pop();
 
-      let newLoadedCustomers = [...loadedCustomers];
+        let cloneLoadedCustomers = [...loadedCustomers];
+        cloneLoadedCustomers.splice(
+          removedHistory.index,
+          0,
+          removedHistory.data,
+        );
 
-      newLoadedCustomers.splice(
-        lastestHistoryItem.index,
-        0,
-        lastestHistoryItem.data,
-      );
+        // dispatch state
+        dispatchState({
+          loadedCustomers: cloneLoadedCustomers,
+          history: newHistoryArr,
+        });
 
-      let newHistoryArr = [...history];
-      newHistoryArr.pop();
+        confirmDialogRef.current?.hide();
 
-      // dispatch state
-      dispatchState({
-        type: ACTION_TYPE.UNDO,
-        loadedCustomers: newLoadedCustomers,
-        history: newHistoryArr,
-      });
+        _handleToast(TOAST_STATUS.SUCCESS, 'Undo success!');
 
-      confirmDialogRef.current?.hide();
+        break;
+      case ACTION_TYPE.ARCHIVE:
+        if (index === -1) {
+          showErrorToast('Error occured!');
 
-      showSuccessToast('UNDO SUCCESS!');
-    }
+          confirmDialogRef.current.hide();
 
-    if (type === ACTION_TYPE.ARCHIVE) {
-      if (index === -1) {
-        showErrorToast('Error occured!');
+          break;
+        }
 
-        confirmDialogRef.current.hide();
+        let cloneLoadedData = [...loadedCustomers];
+        cloneLoadedData.splice(index, 1);
 
-        return;
-      }
+        dispatchState({
+          loadedCustomers: cloneLoadedData,
+          history: [...history, {data: loadedCustomers[index], index}],
+        });
 
-      let cloneArr = [...loadedCustomers];
-      cloneArr = cloneArr
-        .slice(0, index)
-        .concat(cloneArr.slice(index + 1, cloneArr.length - 1));
+        confirmDialogRef.current?.hide();
 
-      dispatchState({
-        type: ACTION_TYPE.ARCHIVE,
-        loadedCustomers: cloneArr,
-        history: [...history, {data: loadedCustomers[index], index}],
-      });
+        _handleToast(TOAST_STATUS.SUCCESS, 'Archive success!');
 
-      confirmDialogRef.current?.hide();
-
-      showSuccessToast('ARCHIVE SUCCESS!');
+        break;
+      default:
+        break;
     }
   };
 
@@ -259,78 +213,116 @@ const HomeScreen = () => {
       return;
     }
 
-    if (type === ACTION_TYPE.UPDATE) {
-      // Handle update
-      if (index === -1) {
-        showErrorToast('Error occured');
-        return;
-      }
+    switch (type) {
+      case ACTION_TYPE.UPDATE:
+        if (index === -1) {
+          showErrorToast('Error occured');
 
-      // Update customerslist
-      let updateCustomerIndex = customers.findIndex(element => {
-        return element.id === customer.id;
-      });
+          break;
+        }
 
-      if (updateCustomerIndex === -1) {
-        showErrorToast('Error occured');
-        return;
-      }
+        let updateCustomerIndex = customers.findIndex(element => {
+          return element.id === customer.id;
+        });
 
-      let cloneCustomers = [...customers];
-      cloneCustomers[updateCustomerIndex] = customer;
+        if (updateCustomerIndex === -1) {
+          showErrorToast('Error occured');
 
-      // Update loaded customers list
-      let cloneLoadedCustomers = [...loadedCustomers];
-      cloneLoadedCustomers[index] = customer;
+          break;
+        }
 
-      dispatchState({
-        type: ACTION_TYPE.UPDATE,
-        customers: cloneCustomers,
-        loadedCustomers: cloneLoadedCustomers,
-      });
+        let cloneCustomers = [...customers];
 
-      _handleFormDialogClose();
+        if (
+          JSON.stringify(customer) === JSON.stringify(cloneCustomers[index])
+        ) {
+          _handleToast(TOAST_STATUS.ERROR, 'Nothing to update!');
 
-      showSuccessToast('Updated');
-      return;
-    }
+          break;
+        }
+        cloneCustomers[updateCustomerIndex] = customer;
 
-    if (type === ACTION_TYPE.ADD) {
-      // handle create
-      let newCustomerId = -1;
+        let cloneLoadedCustomers = [...loadedCustomers];
+        cloneLoadedCustomers[index] = customer;
 
-      if (customers.length === 0) {
-        newCustomerId = 1;
-      } else {
-        newCustomerId = customers.length + history.length + 1;
-        // newCustomerId =
-        //   Math.max(...customers.map(({id}) => id)) + history.length + 1;
-      }
+        dispatchState({
+          customers: cloneCustomers,
+          loadedCustomers: cloneLoadedCustomers,
+        });
 
-      const newCustomer = {...customer, id: newCustomerId};
+        _handleFormDialogClose();
+        _handleToast(TOAST_STATUS.SUCCESS, 'Updated');
 
-      let newCustomers = [...customers];
-      newCustomers = [newCustomer, ...newCustomers];
+        break;
+      case ACTION_TYPE.ADD:
+        const newCustomer = {
+          ...customer,
+          id: Date.now(),
+        };
 
-      let newLoadedCustomers = [...loadedCustomers];
-      newLoadedCustomers = [newCustomer, ...newLoadedCustomers];
+        dispatchState({
+          customers: [newCustomer].concat([...customers]),
+          loadedCustomers: [newCustomer].concat([...loadedCustomers]),
+        });
+        _handleFormDialogClose();
+        _handleToast(TOAST_STATUS.SUCCESS, 'Added');
 
-      dispatchState({
-        type: ACTION_TYPE.UPDATE,
-        customers: newCustomers,
-        loadedCustomers: newLoadedCustomers,
-      });
-
-      _handleFormDialogClose();
-
-      showSuccessToast('Updated');
-      return;
+        break;
+      default:
+        break;
     }
   };
 
   const _handleAddCustomer = () => {
     formDialogRef.current?.showCreate();
   };
+
+  const extractItemKey = item => {
+    return item.id?.toString();
+  };
+
+  const _getItemLayout = (_data, index) => ({
+    length: getScreenWidth,
+    offset: 120 * index,
+    index,
+  });
+
+  const _renderItem = ({item}) => <Customer item={item} />;
+
+  const _quickActions = ({index, item}) => {
+    const _onUpdatePress = () => {
+      formDialogRef.current?.showUpdate(item, index);
+    };
+
+    const _onArchivePress = () => {
+      confirmDialogRef.current?.showArchive(
+        'Do you want to archive this customer?',
+        index,
+      );
+    };
+
+    return (
+      <View style={styles.qaContainer}>
+        <Pressable
+          style={[styles.button, styles.buttonUpdate]}
+          onPress={_onUpdatePress}>
+          <Text style={[styles.buttonText, styles.button1Text]}>Update</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.button, styles.buttonArchive]}
+          onPress={_onArchivePress}>
+          <Text style={[styles.buttonText, styles.button2Text]}>Archive</Text>
+        </Pressable>
+      </View>
+    );
+  };
+
+  useEffect(() => {
+    return () => {
+      timerRef.current && clearTimeout(timerRef.current);
+    };
+  }, []);
 
   return (
     <>
@@ -339,10 +331,11 @@ const HomeScreen = () => {
         handleAddCustomer={_handleAddCustomer}
         handleUndo={_handleUndo}
         historyLength={history.length}
+        style={styles.actions}
       />
 
       <SwipeableFlatList
-        _flatListRef={flatlistRef}
+        flatListRef={flatlistRef}
         keyExtractor={extractItemKey}
         data={loadedCustomers}
         renderItem={_renderItem}
@@ -352,10 +345,9 @@ const HomeScreen = () => {
         bounceFirstRowOnMount={false}
         onEndReached={_handleLoadMore}
         getItemLayout={_getItemLayout}
-        removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         initialNumToRender={10}
-        onEndReachedThreshold={0.1}
+        onEndReachedThreshold={0.01}
       />
 
       <ConfirmDialog
