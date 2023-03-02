@@ -1,6 +1,6 @@
 // **Import libs
 import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
-import {Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {Text, TextInput, View} from 'react-native';
 
 // **Import local
 import Dialog from '../../../../shared-components/dialog';
@@ -50,7 +50,7 @@ const FormDialog = ({onClose, onConfirm}, ref) => {
     });
   };
 
-  const _hide = () => {
+  const _hide = callback => {
     setState({
       ...state,
       open: false,
@@ -159,48 +159,45 @@ const FormDialog = ({onClose, onConfirm}, ref) => {
   );
 
   return (
-    <Dialog
-      visible={state.open}
-      onClose={onClose}
-      onConfirm={_handleOnConfirm}
-      onShow={_onShow}>
-      <Text style={styles.title}>{title}</Text>
-
-      <InputField
-        label="First Name"
-        ref={firstNameInputRef}
-        onChangeText={_onChangeTextFirstName}
-        placeholder="Please enter first name"
-      />
-
-      <InputField
-        label="Last Name"
-        ref={lastNameInputRef}
-        onChangeText={_onChangeTextLastName}
-        placeholder="Please enter last name"
-      />
-
-      <InputField
-        label="Address"
-        ref={addressInputRef}
-        onChangeText={_onChangeTextAddress}
-        placeholder="Please enter address"
-      />
-
-      <InputField
-        label="Gender"
-        ref={genderInputRef}
-        onChangeText={_onChangeTextGender}
-        placeholder="Please enter gender"
-      />
-
-      <InputField
-        label="Email"
-        ref={emailInputRef}
-        onChangeText={_onChangeTextEmail}
-        placeholder="Please enter email"
-      />
-    </Dialog>
+    <>
+      <Dialog
+        visible={state.open}
+        onClose={onClose}
+        onConfirm={_handleOnConfirm}
+        onShow={_onShow}>
+        <Text style={styles.title}>{title}</Text>
+        <InputField
+          label="First Name"
+          ref={firstNameInputRef}
+          onChangeText={_onChangeTextFirstName}
+          placeholder="Please enter first name"
+        />
+        <InputField
+          label="Last Name"
+          ref={lastNameInputRef}
+          onChangeText={_onChangeTextLastName}
+          placeholder="Please enter last name"
+        />
+        <InputField
+          label="Address"
+          ref={addressInputRef}
+          onChangeText={_onChangeTextAddress}
+          placeholder="Please enter address"
+        />
+        <InputField
+          label="Gender"
+          ref={genderInputRef}
+          onChangeText={_onChangeTextGender}
+          placeholder="Please enter gender"
+        />
+        <InputField
+          label="Email"
+          ref={emailInputRef}
+          onChangeText={_onChangeTextEmail}
+          placeholder="Please enter email"
+        />
+      </Dialog>
+    </>
   );
 };
 

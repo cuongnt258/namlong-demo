@@ -1,10 +1,18 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {Text, TouchableOpacity, View} from 'react-native';
 
 // Import local files
 import styles from './style';
 
-const Customer = ({first_name, last_name, email, gender, address}) => {
+const Customer = ({
+  first_name,
+  last_name,
+  email,
+  gender,
+  address,
+  onUpdate,
+  onArchive,
+}) => {
   return (
     <View style={styles.container}>
       <View style={styles.info}>
@@ -14,10 +22,23 @@ const Customer = ({first_name, last_name, email, gender, address}) => {
 
         <Text numberOfLines={1}>{email} </Text>
         <Text numberOfLines={1}>{address}</Text>
+
+        <Text numberOfLines={2}>{gender}</Text>
       </View>
-      <Text numberOfLines={2} style={styles.gender}>
-        {gender}
-      </Text>
+
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={[styles.button, styles.buttonUpdate]}
+          onPress={onUpdate}>
+          <Text>Update</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.buttonArchive]}
+          onPress={onArchive}>
+          <Text>Archive</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

@@ -9,8 +9,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'lightgray',
     marginHorizontal: 16,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
+    borderRadius: 16,
     elevation: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -33,10 +32,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   email: {},
-  gender: {
-    minWidth: 50,
-    alignSelf: 'center',
-    textAlign: 'center',
+  gender: {},
+
+  actions: {
+    justifyContent: 'space-between',
+    alignContent: 'space-between',
+  },
+
+  button: {
+    padding: 8,
+    borderRadius: 4,
+    elevation: 10,
+    marginVertical: 4,
+  },
+  buttonArchive: {
+    backgroundColor: '#FD8A8A',
+  },
+  buttonUpdate: {
+    backgroundColor: '#9EA1D4',
   },
 });
 

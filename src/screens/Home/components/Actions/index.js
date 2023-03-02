@@ -1,13 +1,13 @@
 // **Import libs
 import React from 'react';
-import {SafeAreaView, Text, TouchableOpacity} from 'react-native';
+import {Text, TouchableOpacity, View} from 'react-native';
 
 // **Import locals
 import styles from './style';
 
 const Actions = ({handleImportFile, handleUndo, handleAddCustomer, style}) => {
   return (
-    <SafeAreaView style={[styles.container, style]}>
+    <View style={[styles.container, style]}>
       <TouchableOpacity
         style={[styles.button, styles.buttonImport]}
         onPress={handleImportFile}>
@@ -25,7 +25,7 @@ const Actions = ({handleImportFile, handleUndo, handleAddCustomer, style}) => {
         onPress={handleUndo}>
         <Text style={styles.buttonText}>Undo</Text>
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 };
 
