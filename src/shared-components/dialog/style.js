@@ -4,8 +4,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(52, 52, 52, 0.8)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     zIndex: -10000,
   },
 
@@ -26,10 +25,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
     minHeight: 100,
-    width: '90%',
     borderWidth: 1,
     borderColor: '#fff',
-    borderRadius: 7,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     elevation: 10,
     paddingHorizontal: 16,
     paddingVertical: 32,
@@ -47,14 +46,14 @@ const styles = StyleSheet.create({
 
   message: {
     fontSize: 16,
-    marginTop: 32,
+    marginTop: 24,
     color: 'gray',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     marginHorizontal: 16,
-    marginTop: 32,
+    marginTop: 24,
   },
   button: {
     flex: 1,

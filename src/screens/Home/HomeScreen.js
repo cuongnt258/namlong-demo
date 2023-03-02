@@ -337,7 +337,7 @@ const HomeScreen = () => {
       <FlatList
         ref={flatlistRef}
         keyExtractor={extractItemKey}
-        data={customers}
+        data={loadedCustomers}
         renderItem={_renderItem}
         contentContainerStyle={styles.contentContainerStyle}
         onEndReached={_handleLoadMore}
