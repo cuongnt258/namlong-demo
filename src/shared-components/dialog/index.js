@@ -1,11 +1,12 @@
 import React from 'react';
-import {Modal, Pressable, Text, TouchableOpacity, View} from 'react-native';
-import {Toast} from 'react-native-toast-message/lib/src/Toast';
+import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import ReactNativeModal from 'react-native-modal';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 // **Import local
 import styles from './style';
 
-const Dialog = ({style, visible, onClose, onConfirm, children, ...props}) => {
+const Dialog = ({ style, visible, onClose, onConfirm, children, ...props }) => {
   return (
     <>
       <Modal

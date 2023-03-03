@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   flex: {
@@ -7,7 +7,6 @@ const styles = StyleSheet.create({
   contentContainerStyle: {
     flexGrow: 1,
   },
-
   actions: {
     marginBottom: 16,
   },

@@ -1,39 +1,36 @@
 // **Import libs
-import React, {useEffect, useReducer, useRef} from 'react';
-import {FlatList} from 'react-native';
-import {utils} from 'xlsx';
+import React, { useEffect, useReducer, useRef } from 'react';
+import { FlatList, LayoutAnimation } from 'react-native';
+import { utils } from 'xlsx';
 
 // **Import local
 import {
+  compareObj,
   pickAndParse,
   reducer,
   showErrorToast,
   showSuccessToast,
 } from '../../utils';
-import {ConfirmDialog, Customer, FormDialog} from './components';
+import { ConfirmDialog, Customer, FormDialog } from './components';
 import Actions from './components/Actions';
-import {ACTION_TYPE, FS, TOAST_STATUS} from './constants';
+import { ACTION_TYPE, FS, TOAST_STATUS } from './constants';
 import styles from './HomeScreen.style';
 
 const HomeScreen = () => {
   const initState = {
     customers: [],
-    loadedCustomers: [],
     history: [],
-    loading: false,
-    page: 1,
   };
 
   // State, ref
   const flatlistRef = useRef();
   const confirmDialogRef = useRef(null);
   const formDialogRef = useRef(null);
-  const loadMoreRef = useRef(false);
   const timerRef = useRef();
   const [state, dispatchState] = useReducer(reducer, initState);
 
   // Get variables from state
-  const {customers, loadedCustomers, page, history} = state;
+  const { customers, history } = state;
 
   // Functions
   const _scrollToIndex = index => {
@@ -54,21 +51,18 @@ const HomeScreen = () => {
 
   const _handleImportFile = async () => {
     try {
-      dispatchState({loading: true});
-
       /* select and parse file */
       const wb = await pickAndParse();
 
       /* convert first worksheet to AOA */
       const wsname = wb.SheetNames[0];
       const ws = wb.Sheets[wsname];
-      const data = utils.sheet_to_json(ws, {header: 1});
+      const data = utils.sheet_to_json(ws, { header: 1 });
 
       /* update state */
       // remove first array, reduce into array objects
       const newData = data.slice(1).reduce((array, curr) => {
         const obj = {};
-
         data[0].forEach((key, i) => (obj[key] = curr[i]));
         array.push(obj);
 
@@ -78,15 +72,10 @@ const HomeScreen = () => {
       // dispatch
       dispatchState({
         customers: newData,
-        loadedCustomers: newData.slice(0, 10),
-        page: 1,
-        loading: false,
       });
 
       showSuccessToast('Import success!');
     } catch (err) {
-      dispatchState({loading: false});
-
       if (err.code === FS.DOCUMENT_PICKER_CANCELED) {
         showErrorToast('Import cancelled!');
         return;
@@ -96,40 +85,6 @@ const HomeScreen = () => {
     }
   };
 
-  const _handleLoadMore = () => {
-    if (loadMoreRef.current === true) {
-      return;
-    }
-
-    const newPage = page + 1;
-
-    let cloneCustomers = [...customers];
-
-    if (history.length !== 0) {
-      const newHistory = history.map(element => {
-        return element?.item;
-      });
-
-      cloneCustomers = cloneCustomers.filter(obj => {
-        return !newHistory.some(obj2 => obj2?.id === obj?.id);
-      });
-    }
-
-    let slicedArr = cloneCustomers.slice(10 * (newPage - 1), newPage * 10);
-
-    // issue: remove duplicated item in first load
-    slicedArr = slicedArr.filter(
-      obj => !loadedCustomers.some(obj2 => obj2.id === obj.id),
-    );
-
-    dispatchState({
-      page: newPage,
-      loadedCustomers: [...loadedCustomers].concat(slicedArr),
-    });
-
-    loadMoreRef.current = false;
-  };
-
   const _handleUndo = () => {
     if (!history.length) {
       showErrorToast('Nothing to undo!');
@@ -137,34 +92,29 @@ const HomeScreen = () => {
       return;
     }
 
-    const undoIndex = history?.[history.length - 1]?.index || -1;
+    const undoElement = history[history.length - 1];
 
     confirmDialogRef.current?.showUndo(
       'Press confirm to undo archived customer',
-      undoIndex,
+      undoElement.index,
     );
   };
 
-  const _handleDialogConfirm = ({type, index}) => {
+  const _handleDialogConfirm = ({ type, index }) => {
     switch (type) {
       case ACTION_TYPE.UNDO:
         const newHistoryArr = [...history];
         const removedHistory = newHistoryArr.pop();
 
-        let cloneLoadedCustomers = [...loadedCustomers];
-        cloneLoadedCustomers.splice(
-          removedHistory.index,
-          0,
-          removedHistory.data,
-        );
+        let cloneCustomers = [...customers];
+        cloneCustomers.splice(removedHistory.index, 0, removedHistory.data);
 
         dispatchState({
-          loadedCustomers: cloneLoadedCustomers,
+          loadedCustomers: cloneCustomers,
           history: newHistoryArr,
         });
 
         confirmDialogRef.current?.hide();
-
         _handleToast(TOAST_STATUS.SUCCESS, 'Undo success!');
         _scrollToIndex(removedHistory.index);
 
@@ -172,22 +122,26 @@ const HomeScreen = () => {
       case ACTION_TYPE.ARCHIVE:
         if (index === -1) {
           showErrorToast('Error occured!');
-
           confirmDialogRef.current.hide();
 
           return;
         }
 
-        let cloneLoadedData = [...loadedCustomers];
-        cloneLoadedData.splice(index, 1);
+        let cloneCustomers2 = [...customers];
+        cloneCustomers2.splice(index, 1);
 
         dispatchState({
-          loadedCustomers: cloneLoadedData,
-          history: [...history, {data: loadedCustomers[index], index}],
+          customers: cloneCustomers2,
+          history: [
+            ...history,
+            {
+              data: customers[index],
+              index,
+            },
+          ],
         });
 
         confirmDialogRef.current?.hide();
-
         _handleToast(TOAST_STATUS.SUCCESS, 'Archive success!');
 
         break;
@@ -225,34 +179,16 @@ const HomeScreen = () => {
           return;
         }
 
-        let updateCustomerIndex = customers.findIndex(element => {
-          return element.id === customer.id;
-        });
-
-        if (updateCustomerIndex === -1) {
-          showErrorToast('Error occured');
-
-          return;
-        }
-
         let cloneCustomers = [...customers];
-
-        if (
-          JSON.stringify(customer) === JSON.stringify(cloneCustomers[index])
-        ) {
+        if (compareObj(customer, cloneCustomers[index])) {
           showErrorToast('Nothing to update!');
 
           return;
         }
-
-        cloneCustomers[updateCustomerIndex] = customer;
-
-        let cloneLoadedCustomers = [...loadedCustomers];
-        cloneLoadedCustomers[index] = customer;
+        cloneCustomers[index] = customer;
 
         dispatchState({
           customers: cloneCustomers,
-          loadedCustomers: cloneLoadedCustomers,
         });
 
         _handleFormDialogClose();
@@ -267,8 +203,8 @@ const HomeScreen = () => {
 
         dispatchState({
           customers: [newCustomer].concat([...customers]),
-          loadedCustomers: [newCustomer].concat([...loadedCustomers]),
         });
+
         _handleFormDialogClose();
         _handleToast(TOAST_STATUS.SUCCESS, 'Added');
         _scrollToIndex(0);
@@ -293,7 +229,7 @@ const HomeScreen = () => {
     index,
   });
 
-  const _renderItem = ({item, index}) => {
+  const _renderItem = ({ item, index }) => {
     const onUpdate = () => {
       formDialogRef.current?.showUpdate(item, index);
     };
@@ -324,6 +260,10 @@ const HomeScreen = () => {
     };
   }, []);
 
+  useEffect(() => {
+    console.log(history);
+  }, [history]);
+
   return (
     <>
       <Actions
@@ -337,15 +277,13 @@ const HomeScreen = () => {
       <FlatList
         ref={flatlistRef}
         keyExtractor={extractItemKey}
-        data={loadedCustomers}
+        data={customers}
         renderItem={_renderItem}
         contentContainerStyle={styles.contentContainerStyle}
-        onEndReached={_handleLoadMore}
         getItemLayout={_getItemLayout}
         maxToRenderPerBatch={10}
         initialNumToRender={10}
         removeClippedSubViews={true}
-        onEndReachedThreshold={0.01}
       />
 
       <ConfirmDialog

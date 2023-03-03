@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
@@ -33,12 +33,10 @@ const styles = StyleSheet.create({
   },
   email: {},
   gender: {},
-
   actions: {
     justifyContent: 'space-between',
     alignContent: 'space-between',
   },
-
   button: {
     padding: 8,
     borderRadius: 4,

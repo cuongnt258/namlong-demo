@@ -1,11 +1,16 @@
 // **Import libs
 import React from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 // **Import locals
 import styles from './style';
 
-const Actions = ({handleImportFile, handleUndo, handleAddCustomer, style}) => {
+const Actions = ({
+  handleImportFile,
+  handleUndo,
+  handleAddCustomer,
+  style,
+}) => {
   return (
     <View style={[styles.container, style]}>
       <TouchableOpacity

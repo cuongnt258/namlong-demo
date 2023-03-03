@@ -1,37 +1,37 @@
-import {DeviceEventEmitter, Dimensions} from 'react-native';
-import {Toast} from 'react-native-toast-message/lib/src/Toast';
-import {pickSingle} from 'react-native-document-picker';
-import {readFile} from 'react-native-fs';
-import {read} from 'xlsx';
+import { DeviceEventEmitter, Dimensions } from 'react-native';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import { pickSingle } from 'react-native-document-picker';
+import { readFile } from 'react-native-fs';
+import { read } from 'xlsx';
 
 const getScreenWidth = Dimensions.get('window').width;
 
 // Old toast
 const showSuccessToast = message => {
-  Toast.show({type: 'success', text1: message});
+  Toast.show({ type: 'success', text1: message });
 };
 
 const showErrorToast = message => {
-  Toast.show({type: 'error', text1: message});
+  Toast.show({ type: 'error', text1: message });
 };
 
 // New toast
 const toast = {
   info: options => {
-    DeviceEventEmitter.emit('SHOW_TOAST', {...options, type: 'info'});
+    DeviceEventEmitter.emit('SHOW_TOAST', { ...options, type: 'info' });
   },
   success: options => {
-    DeviceEventEmitter.emit('SHOW_TOAST', {...options, type: 'success'});
+    DeviceEventEmitter.emit('SHOW_TOAST', { ...options, type: 'success' });
   },
   danger: options => {
-    DeviceEventEmitter.emit('SHOW_TOAST', {...options, type: 'danger'});
+    DeviceEventEmitter.emit('SHOW_TOAST', { ...options, type: 'danger' });
   },
 };
 
 // Reducer
 const reducer = (prevState, newState) => {
   if (typeof newState === 'object') {
-    return {...prevState, ...newState};
+    return { ...prevState, ...newState };
   }
 
   if (typeof newState === 'function') {
@@ -51,7 +51,13 @@ const pickAndParse = async () => {
   });
 
   const bstr = await readFile(f.fileCopyUri, 'ascii');
-  return read(bstr, {type: 'binary'});
+  return read(bstr, { type: 'binary' });
+};
+
+const compareObj = (obj1, obj2) => {
+  if (!obj1 || !obj2) return false;
+
+  return JSON.stringify(obj1) === JSON.stringify(obj2);
 };
 
 export {
@@ -61,4 +67,5 @@ export {
   reducer,
   pickAndParse,
   toast,
+  compareObj,
 };

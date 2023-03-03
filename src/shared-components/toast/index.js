@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   DeviceEventEmitter,
   Platform,
@@ -62,7 +62,8 @@ const Toast = () => {
 
   return (
     message && (
-      <View style={[{backgroundColor: colors[messageType]}, styles.container]}>
+      <View
+        style={[{ backgroundColor: colors[messageType] }, styles.container]}>
         <TouchableOpacity onPress={closeToast}>
           <Text style={styles.text}>{message}</Text>
         </TouchableOpacity>

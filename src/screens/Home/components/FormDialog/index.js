@@ -1,13 +1,18 @@
 // **Import libs
-import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
-import {Text, TextInput, View} from 'react-native';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
+import { Text, TextInput, View } from 'react-native';
 
 // **Import local
 import Dialog from '../../../../shared-components/dialog';
-import {ACTION_TYPE} from '../../constants';
+import { ACTION_TYPE } from '../../constants';
 import styles from './style';
 
-const FormDialog = ({onClose, onConfirm}, ref) => {
+const FormDialog = ({ onClose, onConfirm }, ref) => {
   const [state, setState] = useState({
     open: false,
     type: ACTION_TYPE.ADD,
@@ -29,7 +34,7 @@ const FormDialog = ({onClose, onConfirm}, ref) => {
   const genderInputRef = useRef('');
   const emailInputRef = useRef('');
 
-  const {type, index, id} = state;
+  const { type, index, id } = state;
 
   const _showUpdate = (itemValue, itemIndex) => {
     dataRef.current = itemValue;
@@ -117,17 +122,17 @@ const FormDialog = ({onClose, onConfirm}, ref) => {
   const _onShow = () => {
     switch (type) {
       case ACTION_TYPE.UPDATE:
-        const {address, first_name, last_name, gender, email} =
+        const { address, first_name, last_name, gender, email } =
           dataRef.current || {};
 
         firstNameInputRef.current?.setNativeProps({
           text: first_name,
         });
 
-        lastNameInputRef.current?.setNativeProps({text: last_name});
-        addressInputRef.current?.setNativeProps({text: address});
-        genderInputRef.current?.setNativeProps({text: gender});
-        emailInputRef.current?.setNativeProps({text: email});
+        lastNameInputRef.current?.setNativeProps({ text: last_name });
+        addressInputRef.current?.setNativeProps({ text: address });
+        genderInputRef.current?.setNativeProps({ text: gender });
+        emailInputRef.current?.setNativeProps({ text: email });
 
         firstNameValueRef.current = first_name;
         lastNameValueRef.current = last_name;
@@ -143,7 +148,7 @@ const FormDialog = ({onClose, onConfirm}, ref) => {
   };
 
   const InputField = forwardRef(
-    ({label, onChangeText, placeholder}, inputRef) => {
+    ({ label, onChangeText, placeholder }, inputRef) => {
       return (
         <View style={styles.inputContainer}>
           <Text style={styles.label}>{label}</Text>

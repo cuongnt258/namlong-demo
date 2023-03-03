@@ -1,12 +1,12 @@
 // **Import libs
-import React, {forwardRef, useImperativeHandle, useState} from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import { Text, View } from 'react-native';
 
 // **Import local
+import { Dialog } from '../../../../shared-components';
 import styles from './style';
-import {Dialog} from '../../../../shared-components';
 
-const ConfirmDialog = ({onClose, onConfirm}, ref) => {
+const ConfirmDialog = ({ onClose, onConfirm }, ref) => {
   const [state, setState] = useState({
     open: false,
     message: '',
@@ -14,25 +14,26 @@ const ConfirmDialog = ({onClose, onConfirm}, ref) => {
     index: -1,
   });
 
+  const { type, index } = state;
+
   const _show = message => {
-    setState({open: true, message});
+    setState({ open: true, message });
   };
 
   const _showArchive = (message, index) => {
-    setState({open: true, message, index, type: 'ARCHIVE'});
+    setState({ open: true, message, index, type: 'ARCHIVE' });
   };
 
   const _showUndo = (message, index) => {
-    setState({open: true, message, index, type: 'UNDO'});
+    setState({ open: true, message, index, type: 'UNDO' });
   };
 
   const _hide = () => {
-    setState({open: false});
+    setState({ open: false });
   };
 
   const _handleOnConfirm = () => {
-    console.log('>>> CONFIRM');
-    onConfirm({type: state.type, index: state.index});
+    onConfirm({ type, index });
   };
 
   useImperativeHandle(

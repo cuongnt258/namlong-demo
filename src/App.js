@@ -1,10 +1,10 @@
 // **Import libs
 import React from 'react';
-import {SafeAreaView, StyleSheet, View} from 'react-native';
-import {Toast} from 'react-native-toast-message/lib/src/Toast';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 // **Import local
-import {HomeScreen} from './screens';
+import { HomeScreen } from './screens';
 
 const App = () => {
   return (
